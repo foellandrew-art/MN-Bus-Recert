@@ -1,45 +1,362 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Bus, ChevronRight, ArrowLeft, 
+  CheckCircle, ShieldCheck, 
+  Map as MapIcon, 
+  Award, RefreshCw, BookOpen,
+  FileText, ClipboardCheck, History,
+  RotateCcw, Info, Scale, Search,
+  Download, ExternalLink, Library,
+  Globe, Landmark, Book
+} from 'lucide-react';
 
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>First Student – Safety Meeting Templates</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Arial; margin: 2rem; background: #fff; color: #222; }
-    header { border-bottom: 4px solid #C8102E; padding-bottom: 1rem; margin-bottom: 2rem; }
-    h1 { color: #012169; margin: 0; }
-    .btn { display: inline-block; margin: .5rem .5rem 0 0; padding: .75rem 1rem; border-radius: 6px; text-decoration: none; color: #fff; }
-    .btn-red { background: #C8102E; }
-    .btn-blue { background: #012169; }
-    .card { border: 1px solid #eee; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
-    footer { margin-top: 2rem; font-size: .9rem; color: #555; }
-  </style>
-</head>
-<body>
-  <header>
-    <h1>Safety Meeting Schedule Templates</h1>
-    <p>White background · First Student branding · Flexible grid (4–6 slots)</p>
-  </header>
+const MN_MANUAL_CURRICULUM = [
+  { id: 1, title: "Mirror Mastery & Blind Zones", section: "10.1", focus: "Danger Zones and Use of Mirrors" },
+  { id: 2, title: "The 8-Light Sequence", section: "10.2", focus: "Loading and Unloading Procedures" },
+  { id: 3, title: "Student Safety Procedures", section: "10.2.2", focus: "Emergency Exit and Evacuation" },
+  { id: 4, title: "RR Crossing Protocols", section: "10.4", focus: "Railroad-Highway Grade Crossings" },
+  { id: 5, title: "Student Management", section: "10.3", focus: "Handling Behavior & Special Needs" },
+  { id: 6, title: "Antilock Braking Systems", section: "10.2.6", focus: "Using ABS effectively" },
+  { id: 7, title: "External Inspection: Lights", partB: "B.1", focus: "School Bus Light Check (Part B)" },
+  { id: 8, title: "Stop Arm & Signal Logic", partB: "B.1.2", focus: "Warning System Inspection" },
+  { id: 9, title: "Student Mirror Alignment", partB: "B.1.3", focus: "Crossview & Flat Mirror Securement" },
+  { id: 10, title: "Passenger Entry & Lift", partB: "B.2.1", focus: "Entrance Door & Handicap Lift" },
+  { id: 11, title: "Emergency Exit Checks", partB: "B.2.2", focus: "Warning Buzzers & Release Latches" },
+  { id: 12, title: "First Aid & Body Fluid Kits", partB: "B.2.3", focus: "Required Safety Equipment (Part B)" },
+  { id: 13, title: "Seating & Frame Integrity", partB: "B.2.4", focus: "Seat Bottoms & Rail Securement" },
+  { id: 14, title: "Brake System Inspection", partB: "B.3", focus: "Air/Hydraulic Leak Tests" },
+  { id: 15, title: "Engine Compartment MN", partB: "B.4", focus: "Fluid Levels & Component Wear" },
+  { id: 16, title: "Tire & Rim Standards", partB: "B.5", focus: "Tread Depth & Sidewall Integrity" },
+  { id: 17, title: "The 'Sleeping Child' Check", section: "10.2.4", focus: "Post-Trip Inspection Requirements" },
+  { id: 18, title: "Backing & Tail Swing", section: "10.1.3", focus: "Vehicle Maneuvering Limits" },
+  { id: 19, title: "Winter Driving in MN", section: "10.5", focus: "Extreme Weather Safety" },
+  { id: 20, title: "Final Proficiency Review", section: "10 / Part B", focus: "Comprehensive Manual Mastery" }
+];
 
-  <div class="card">
-    <h2>Download Templates</h2>
-    <p>
-      <a class="btn btn-red" hrefe-Template.pptxDownload PowerPoint (.pptx)</a>
-      <a class="btn btn-blue" href="images/Safety-Meeting-Schedule-Template.png" download-blue" href="images/Safety-Meeting-Schedule    </p>
-  </div>
+/**
+ * UPDATED CDL MANUAL URL
+ * Using the double-encoded space (%2520) as required by the DPS S3 bucket.
+ */
+const CDL_MANUAL_BASE_URL = "https://s3.us-east-2.amazonaws.com/assets.dps.mn.gov/s3fs-public/migrated-files/divisions/dvs/forms-documents/Documents/Commercial%2520Drivers%2520License%2520Manual.pdf";
 
-  <div class="card">
-    <h2>How to Update Monthly</h2>
-    <ol>
-      <li>Open the PPTX template → change the Month, meeting slots, times, and locations.</li>
-      <li>Export to PNG/SVG for posting on bulletin boards or Teams.</li>
-      <li>Commit updated files back to the repo.</li>
-    </ol>
-  </div>
+const PDF_LINKS = [
+  { 
+    title: "49 CFR 380 Appendix D", 
+    url: "https://www.ecfr.gov/current/title-49/subtitle-B/chapter-III/subchapter-B/part-380/appendix-Appendix%20D%20to%20Part%20380", 
+    desc: "Federal School Bus ELDT Curriculum", 
+    type: "Federal",
+    isELDT: true 
+  },
+  { 
+    title: "MN CDL Manual (Full)", 
+    url: CDL_MANUAL_BASE_URL, 
+    desc: "Direct S3 PDF Reference", 
+    type: "State" 
+  },
+  { 
+    title: "Section 10: School Buses", 
+    url: `${CDL_MANUAL_BASE_URL}#page=115`, 
+    desc: "MN Operations Guide", 
+    type: "State" 
+  },
+  { 
+    title: "Part B: Inspection", 
+    url: `${CDL_MANUAL_BASE_URL}#page=145`, 
+    desc: "MN Pre-Trip Standards", 
+    type: "State" 
+  }
+];
 
-  <footer>
-    <p>First Student · Safety is at the heart of everything we do.</p>
-  </footer>
-</body>
-</html>
+export default function App() {
+  const [view, setView] = useState('dashboard');
+  const [activeUnit, setActiveUnit] = useState(null);
+  const [dynamicContent, setDynamicContent] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [completedUnits, setCompletedUnits] = useState([]);
+  const [quizIndex, setQuizIndex] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [quizState, setQuizState] = useState('active'); 
+
+  const apiKey = "";
+
+  const sanitizeText = (text) => {
+    if (!text) return "";
+    return text.replace(/\*\*\*(.*?)\*\*\*/g, '<strong>$1</strong>')
+               .replace(/\*\*\?(.*?)\*\*/g, '<strong>$1</strong>')
+               .replace(/\*(.*?)\*/g, '<em>$1</em>');
+  };
+
+  const generateLessonContent = async (unit) => {
+    if (dynamicContent[unit.id]) return;
+    setIsLoading(true);
+    try {
+      const textResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: `Topic: ${unit.title}. Source: MN CDL Manual ${unit.section ? 'Section ' + unit.section : 'Part ' + unit.partB}. Federal Context: 49 CFR 380 Appendix D. Focus: ${unit.focus}. Professional training content for veteran drivers.` }] }],
+          systemInstruction: { parts: [{ text: `You are a MN School Bus Instructor. Return JSON only. Format: { 
+            "the_rule": "Detailed manual summary", 
+            "the_check": "What to look for during pre-trip (Part B)", 
+            "questions": [ {"q": "Q", "a": ["1", "2", "3"], "c": "Correct", "logic": "Citation from MN Manual or 49 CFR 380"} ] 
+          }.` }] },
+          generationConfig: { responseMimeType: "application/json" }
+        })
+      });
+      const data = await textResp.json();
+      const content = JSON.parse(data.candidates[0].content.parts[0].text);
+      
+      setDynamicContent(prev => ({ 
+        ...prev, 
+        [unit.id]: { 
+          ...content, 
+          the_rule: sanitizeText(content.the_rule),
+          the_check: sanitizeText(content.the_check),
+          questions: content.questions.map(q => ({ ...q, q: sanitizeText(q.q), logic: sanitizeText(q.logic) }))
+        } 
+      }));
+    } catch (e) { console.error(e); } finally { setIsLoading(false); }
+  };
+
+  const handleStartExam = () => {
+    setQuizIndex(0);
+    setQuizState('active');
+    setSelectedAnswer(null);
+    setShowFeedback(false);
+    setView('quiz');
+  };
+
+  const handleSelectAnswer = (opt) => {
+    setSelectedAnswer(opt);
+    setShowFeedback(true);
+    const isCorrect = opt === dynamicContent[activeUnit.id].questions[quizIndex].c;
+    if (!isCorrect) setQuizState('failed');
+  };
+
+  const proceedToNext = () => {
+    if (quizState === 'failed') return;
+    if (quizIndex < 2) {
+      setQuizIndex(prev => prev + 1);
+      setSelectedAnswer(null);
+      setShowFeedback(false);
+    } else {
+      setQuizState('passed');
+      setCompletedUnits(prev => [...new Set([...prev, activeUnit.id])]);
+    }
+  };
+
+  return (
+    <div className="max-w-md mx-auto bg-slate-50 min-h-screen flex flex-col font-sans text-slate-900 overflow-x-hidden">
+      <header className="p-4 bg-yellow-400 border-b-2 border-slate-900 flex justify-between items-center sticky top-0 z-[110]">
+        <div onClick={() => setView('dashboard')} className="flex items-center gap-2 cursor-pointer">
+          <Bus size={24} className="text-slate-900" />
+          <h1 className="text-sm font-black uppercase italic tracking-tighter">MN BUS RECERT</h1>
+        </div>
+        <div className="bg-slate-900 px-3 py-1 rounded-full">
+            <span className="text-[9px] font-black text-white tracking-widest uppercase">
+              ELDT COMPLIANT
+            </span>
+        </div>
+      </header>
+
+      <main className="flex-1 overflow-y-auto pb-32">
+        {view === 'dashboard' && (
+          <div className="p-5 space-y-6">
+            <div className="bg-slate-900 rounded-3xl p-6 text-white shadow-xl">
+               <div className="flex justify-between items-center mb-4">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-yellow-400">Manual Mastery</span>
+                  <span className="text-xs font-bold font-mono">{completedUnits.length} / 20</span>
+               </div>
+               <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-full bg-yellow-400 transition-all duration-700" style={{ width: `${(completedUnits.length / 20) * 100}%` }} />
+               </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Curriculum Modules</h3>
+              </div>
+              {MN_MANUAL_CURRICULUM.map(unit => {
+                const done = completedUnits.includes(unit.id);
+                return (
+                  <button 
+                    key={unit.id} 
+                    onClick={() => { setActiveUnit(unit); setView('unit'); }} 
+                    className={`w-full p-4 rounded-2xl border-2 flex items-center gap-4 transition-all ${done ? 'bg-green-50 border-green-500' : 'bg-white border-slate-100 shadow-sm hover:border-yellow-400'}`}
+                  >
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-[10px] ${unit.partB ? 'bg-yellow-400 text-slate-900' : 'bg-slate-900 text-white'}`}>
+                      {unit.section ? '10' : 'B'}
+                    </div>
+                    <div className="flex-1 text-left">
+                      <h4 className="text-[11px] font-black uppercase tracking-tight">{unit.title}</h4>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase">{unit.section ? `Section ${unit.section}` : `Inspection Part ${unit.partB}`}</p>
+                    </div>
+                    {done ? <CheckCircle size={14} className="text-green-500" /> : <ChevronRight size={14} className="text-slate-300" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {view === 'library' && (
+          <div className="p-6 space-y-8 pb-10">
+            <div>
+              <h2 className="text-3xl font-black uppercase italic leading-none text-slate-900">Driver Library</h2>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Official ELDT & State References</p>
+            </div>
+
+            {/* ELDT High Priority Section */}
+            <div className="space-y-4">
+               <div className="flex items-center gap-2">
+                  <Globe size={14} className="text-blue-600" />
+                  <h3 className="text-xs font-black uppercase tracking-widest text-blue-900">Federal ELDT (49 CFR 380)</h3>
+               </div>
+               <div className="grid grid-cols-1 gap-3">
+                  {PDF_LINKS.filter(l => l.isELDT).map((link, idx) => (
+                    <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer" className="bg-blue-600 p-5 rounded-3xl border border-blue-700 shadow-lg flex items-center gap-4 group active:scale-95 transition-transform text-white">
+                      <div className="p-3 bg-white/20 rounded-2xl text-white">
+                        <Scale size={20} />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-black uppercase tracking-tight">{link.title}</h4>
+                        <p className="text-[9px] font-bold opacity-80 uppercase tracking-widest">{link.desc}</p>
+                      </div>
+                      <ExternalLink size={14} className="text-white/50 group-hover:text-white" />
+                    </a>
+                  ))}
+               </div>
+            </div>
+
+            {/* Minnesota Specific - Corrected URL encoding */}
+            <div className="space-y-4">
+               <div className="flex items-center gap-2">
+                  <Landmark size={14} className="text-slate-400" />
+                  <h3 className="text-xs font-black uppercase tracking-widest">MN State Manuals</h3>
+               </div>
+               <div className="grid grid-cols-1 gap-3">
+                  {PDF_LINKS.filter(l => l.type === 'State').map((link, idx) => (
+                    <a key={idx} href={link.url} target="_blank" rel="noopener noreferrer" className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4 group active:scale-95 transition-transform">
+                      <div className="p-3 bg-slate-50 rounded-2xl text-slate-400 group-hover:bg-yellow-400 group-hover:text-slate-900 transition-colors">
+                        <FileText size={20} />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-black uppercase tracking-tight">{link.title}</h4>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{link.desc}</p>
+                      </div>
+                      <ExternalLink size={14} className="text-slate-200 group-hover:text-yellow-600" />
+                    </a>
+                  ))}
+               </div>
+            </div>
+
+            <div className="bg-slate-100 p-5 rounded-3xl border border-dashed border-slate-300">
+               <div className="flex gap-3">
+                  <Info className="text-slate-400 shrink-0" size={18} />
+                  <p className="text-[10px] font-medium leading-relaxed text-slate-500">
+                    The CDL Manual link is the direct S3 asset URL from the Minnesota DPS. If the link does not open, ensure your browser is not blocking pop-ups from this application.
+                  </p>
+               </div>
+            </div>
+          </div>
+        )}
+
+        {view === 'unit' && activeUnit && (
+          <div className="p-6 space-y-6">
+            <button onClick={() => setView('dashboard')} className="flex items-center gap-1 text-[10px] font-black text-slate-400 uppercase mb-4"><ArrowLeft size={14}/> Back</button>
+            <h2 className="text-2xl font-black uppercase italic leading-tight">{activeUnit.title}</h2>
+
+            {!dynamicContent[activeUnit.id] ? (
+              <button 
+                onClick={() => generateLessonContent(activeUnit)} 
+                disabled={isLoading}
+                className="w-full py-8 bg-slate-900 text-yellow-400 rounded-3xl font-black uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl mt-10"
+              >
+                {isLoading ? <RefreshCw className="animate-spin" size={20} /> : <BookOpen size={20} />}
+                {isLoading ? 'Aligning with Appendix D...' : 'Begin Lesson'}
+              </button>
+            ) : (
+              <div className="space-y-6">
+                <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm space-y-3">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Knowledge Content</h3>
+                  <div className="text-sm font-medium leading-relaxed text-slate-700" dangerouslySetInnerHTML={{ __html: dynamicContent[activeUnit.id].the_rule }} />
+                </div>
+                <div className="bg-slate-900 p-6 rounded-3xl text-white space-y-3">
+                  <h3 className="text-[10px] font-black uppercase tracking-widest text-yellow-400">Pre-Trip Check (Part B)</h3>
+                  <div className="text-sm font-medium leading-relaxed opacity-90" dangerouslySetInnerHTML={{ __html: dynamicContent[activeUnit.id].the_check }} />
+                </div>
+                <button onClick={handleStartExam} className="w-full py-6 bg-yellow-400 text-slate-900 rounded-full font-black uppercase italic tracking-widest shadow-lg">Start Proficiency Quiz</button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {view === 'quiz' && activeUnit && dynamicContent[activeUnit.id] && (
+          <div className="p-6 space-y-6">
+              {quizState === 'passed' ? (
+                <div className="text-center py-10 space-y-6 bg-white rounded-3xl border-4 border-green-500 px-6">
+                    <CheckCircle className="mx-auto text-green-500" size={60} />
+                    <h3 className="text-2xl font-black uppercase italic">Module Passed</h3>
+                    <button onClick={() => setView('dashboard')} className="w-full py-5 bg-slate-900 text-yellow-400 rounded-full font-black uppercase italic">Continue Curriculum</button>
+                </div>
+              ) : (
+                <>
+                  <div className="bg-white p-6 rounded-3xl border-2 border-slate-900 min-h-[120px] flex items-center">
+                      <p className="text-lg font-black uppercase italic leading-tight text-slate-900">
+                        {dynamicContent[activeUnit.id].questions[quizIndex].q}
+                      </p>
+                  </div>
+                  <div className="space-y-3">
+                      {dynamicContent[activeUnit.id].questions[quizIndex].a.map((opt, i) => (
+                          <button 
+                            key={i} 
+                            disabled={showFeedback}
+                            onClick={() => handleSelectAnswer(opt)} 
+                            className={`w-full p-4 rounded-2xl border-2 text-left font-black text-xs transition-all ${
+                              showFeedback 
+                                ? opt === dynamicContent[activeUnit.id].questions[quizIndex].c 
+                                  ? 'bg-green-100 border-green-500 text-green-700' 
+                                  : selectedAnswer === opt ? 'bg-red-100 border-red-500 text-red-700' : 'bg-white border-slate-100 opacity-50'
+                                : 'bg-white border-slate-100'
+                            }`}
+                          >
+                            {opt}
+                          </button>
+                      ))}
+                      {showFeedback && (
+                        <div className="mt-4 space-y-4">
+                          <div className={`p-5 rounded-2xl text-[11px] font-bold italic ${quizState === 'failed' ? 'bg-red-50 text-red-800' : 'bg-slate-900 text-white border-l-4 border-yellow-400'}`}>
+                             {dynamicContent[activeUnit.id].questions[quizIndex].logic}
+                          </div>
+                          {quizState === 'failed' ? (
+                            <button onClick={() => setView('unit')} className="w-full py-5 bg-red-600 text-white rounded-full font-black uppercase italic flex items-center justify-center gap-2"><RotateCcw size={18} /> Review Material</button>
+                          ) : (
+                            <button onClick={proceedToNext} className="w-full bg-yellow-400 text-slate-900 py-5 rounded-full font-black uppercase italic">{quizIndex < 2 ? 'Next Question' : 'Finish Module'}</button>
+                          )}
+                        </div>
+                      )}
+                  </div>
+                </>
+              )}
+          </div>
+        )}
+      </main>
+
+      <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] bg-slate-900 p-1.5 rounded-full flex justify-between items-center shadow-2xl z-[120] border border-white/10">
+        <button onClick={() => setView('dashboard')} className={`flex-1 flex flex-col items-center justify-center py-3 rounded-full transition-all ${view === 'dashboard' ? 'bg-yellow-400 text-slate-900' : 'text-slate-400'}`}>
+          <MapIcon size={20} />
+          <span className="text-[8px] font-black uppercase mt-1">Modules</span>
+        </button>
+        <button onClick={() => setView('library')} className={`flex-1 flex flex-col items-center justify-center py-3 rounded-full transition-all ${view === 'library' ? 'bg-yellow-400 text-slate-900' : 'text-slate-400'}`}>
+          <Library size={20} />
+          <span className="text-[8px] font-black uppercase mt-1">ELDT Ref</span>
+        </button>
+        <button onClick={() => setView('stats')} className={`flex-1 flex flex-col items-center justify-center py-3 rounded-full transition-all ${view === 'stats' ? 'bg-yellow-400 text-slate-900' : 'text-slate-400'}`}>
+          <Award size={20} />
+          <span className="text-[8px] font-black uppercase mt-1">Status</span>
+        </button>
+      </nav>
+    </div>
+  );
+}
